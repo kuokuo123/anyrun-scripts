@@ -6,6 +6,8 @@ Run shell commands in a designated terminal emulator through [anyrun](https://gi
 
 Specify your prefer terminal emulator in the config file. In anyrun, type in `<prefix><command>`, where `<prefix>` is the configured prefix and `<command>` is the command you want to run. This plugin can be configured to use your preferred terminal emulator, default to foot. Make sure to set the correct option that executes the command at terminal startup (for example, "-e" for alacritty).
 
+![Demo Video](https://github.com/kuokuo123/anyrun-terminal/raw/main/asset/demo.mkv?raw=true)
+
 ## Configuration
 
 ```ron
