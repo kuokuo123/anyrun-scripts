@@ -1,4 +1,4 @@
-# anyrun-terminal
+# Anyrun-Terminal
 
 Run shell commands in a designated terminal emulator through [anyrun](https://github.com/Kirottu/anyrun). This is a modified version of the original [shell](https://github.com/Kirottu/anyrun/tree/master/plugins/shell) plugin in order to save some key strokes when launching cli programs. For example, to launch htop with the shell plugin you should type in ":sh alacritty -e htop", but with this modified plugin ":sh htop" does the same task.
 
