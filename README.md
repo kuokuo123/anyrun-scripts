@@ -1,6 +1,6 @@
 # Anyrun-Terminal
 
-Run cli programs or arbitrary shell scripts in a designated terminal emulator with [anyrun](https://github.com/Kirottu/anyrun). 
+Run cli programs or arbitrary shell scripts in preferred terminal emulators with [anyrun](https://github.com/Kirottu/anyrun). 
 
 ## Usage
 
