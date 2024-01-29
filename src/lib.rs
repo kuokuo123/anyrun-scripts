@@ -1,23 +1,64 @@
-use std::{env, fs, process::Command};
 use abi_stable::std_types::{ROption, RString, RVec};
 use anyrun_plugin::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::{env, fs, process::Command};
 
-#[derive(Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+enum Engine {
+    Shell,
+    Alacritty,
+    Foot,
+    Custom { name: String, cmd: String, secondary_prefix: String, icon: String },
+}
+
+impl Engine {
+    fn value(&self) -> &str {
+        match self {
+            Self::Shell => "$TERMINAL -e {}",
+            Self::Alacritty => "alacritty -e {}",
+            Self::Foot => "foot {}",
+            Self::Custom { cmd, .. } => cmd,
+        }
+    }
+    fn secondary_prefix(&self) -> &str {
+        match self {
+            Self::Shell => "sh ",
+            Self::Alacritty => "sh ",
+            Self::Foot => "sh ",
+            Self::Custom { secondary_prefix, .. } => secondary_prefix,
+        }
+    }
+    fn name(&self) -> &str {
+        match self {
+            Self::Shell => "Shell",
+            Self::Alacritty => "Alacritty",
+            Self::Foot => "Foot",
+            Self::Custom { name, .. } => name,
+        }
+    }
+    fn icon(&self) -> &str {
+        match self {
+            Self::Shell => "utilities-terminal",
+            Self::Alacritty => "Alacritty",
+            Self::Foot => "foot",
+            Self::Custom { icon, .. } => icon,
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
 struct Config {
     prefix: String,
     shell: Option<String>,
-    emulator: String,
-    exec_opt: String,
+    engines: Vec<Engine>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            prefix: ":sh".to_string(),
+            prefix: ":".to_string(),
             shell: None,
-            emulator: "foot".to_string(),
-            exec_opt: "-e".to_string(),
+            engines: vec![Engine::Shell],
         }
     }
 }
@@ -34,49 +75,61 @@ fn init(config_dir: RString) -> Config {
 fn info() -> PluginInfo {
     PluginInfo {
         name: "Terminal".into(),
-        icon: "utilities-terminal".into(),
+        icon: "terminal".into(),
     }
 }
 
 #[get_matches]
 fn get_matches(input: RString, config: &Config) -> RVec<Match> {
-    if input.starts_with(&config.prefix) {
-        let (_, command) = input.split_once(&config.prefix).unwrap();
-        if !command.is_empty() {
-            vec![Match {
-                title: format!("{} {} {}", config.emulator.to_string(), &config.exec_opt, command.trim()).into(),
-                description: ROption::RSome(
-                    config
-                        .shell
-                        .clone()
-                        .unwrap_or_else(|| {
-                            env::var("SHELL").unwrap_or_else(|_| {
-                                "The shell could not be determined!".to_string()
-                            })
-                        })
-                        .into(),
-                ),
-                use_pango: false,
-                icon: ROption::RNone,
-                id: ROption::RNone,
-            }]
-            .into()
-        } else {
-            RVec::new()
-        }
-    } else {
+    if !input.starts_with(&config.prefix) {
         RVec::new()
+    } else {
+        config
+            .engines
+            .iter()
+            .filter(|engine| input.strip_prefix(&config.prefix)
+                    .expect("Unable to strip prefix from input lines")
+                    .starts_with(&engine.secondary_prefix())
+            )
+            .enumerate()
+            .map(|(_, engine)| Match {
+                title: engine.name().into(),
+                description: ROption::RSome(format!("{}", input.trim_start_matches(&config.prefix).trim_start_matches(&engine.secondary_prefix())).into()),
+                use_pango: false,
+                icon: ROption::RSome(format!("{}", engine.icon()).into()),
+                id: ROption::RNone,
+            })
+            .collect()
     }
 }
 
 #[handler]
-fn handler(selection: Match) -> HandleResult {
-    if let Err(why) = Command::new(selection.description.unwrap().as_str())
+fn handler(selection: Match, config: &Config) -> HandleResult {
+
+    let engine = config
+        .engines
+        .iter()
+        .find(|engine| engine.name() == selection.title)
+        .unwrap();
+
+    let args = &selection.description.unwrap();
+
+    if let Err(why) = Command::new(
+        config
+            .shell
+            .clone()
+            .unwrap_or_else(|| {
+                env::var("SHELL").unwrap_or_else(|_| {
+                    "The shell could not be determined!".to_string()
+                })
+            }))
         .arg("-c")
-        .arg(selection.title.as_str())
+        .arg(format!(
+            "{}",
+            engine.value().replace("{}", &args)))
         .spawn()
     {
-        println!("Failed to run command: {}", why);
+        println!("Failed to perform anyrun-terminal: {}", why);
     }
 
     HandleResult::Close
