@@ -74,7 +74,7 @@ fn init(config_dir: RString) -> Config {
 #[info]
 fn info() -> PluginInfo {
     PluginInfo {
-        name: "Terminal".into(),
+        name: "Script".into(),
         icon: "terminal".into(),
     }
 }
