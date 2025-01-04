@@ -94,7 +94,11 @@ fn get_matches(input: RString, config: &Config) -> RVec<Match> {
             .enumerate()
             .map(|(_, engine)| Match {
                 title: engine.name().into(),
-                description: ROption::RSome(format!("{}", input.trim_start_matches(&config.prefix).trim_start_matches(&engine.secondary_prefix())).into()),
+                description: if input.trim_start_matches(&config.prefix).trim_start_matches(&engine.secondary_prefix()).is_empty() {
+                    ROption::RNone.into()
+                } else {
+                    ROption::RSome(format!("{}", input.trim_start_matches(&config.prefix).trim_start_matches(&engine.secondary_prefix())).into())
+                },
                 use_pango: false,
                 icon: ROption::RSome(format!("{}", engine.icon()).into()),
                 id: ROption::RNone,
@@ -112,22 +116,34 @@ fn handler(selection: Match, config: &Config) -> HandleResult {
         .find(|engine| engine.name() == selection.title)
         .unwrap();
 
-    let args = &selection.description.unwrap();
-
-    if let Err(why) = Command::new(
-        config
-            .shell
-            .clone()
-            .unwrap_or_else(|| {
-                env::var("SHELL").unwrap_or_else(|_| {
-                    "The shell could not be determined!".to_string()
-                })
-            }))
+    if let Err(why) = if selection.description == None.into() {
+        Command::new(
+            config
+                .shell
+                .clone()
+                .unwrap_or_else(|| {
+                    env::var("SHELL").unwrap_or_else(|_| {
+                        "The shell could not be determined!".to_string()
+                    })
+                }))
         .arg("-c")
-        .arg(format!(
-            "{}",
-            engine.value().replace("{}", &args)))
+        .arg(format!("{}", engine.value().replace("{}", "")))
         .spawn()
+    } else {
+        Command::new(
+            config
+                .shell
+                .clone()
+                .unwrap_or_else(|| {
+                    env::var("SHELL").unwrap_or_else(|_| {
+                        "The shell could not be determined!".to_string()
+                    })
+                }))
+        .arg("-c")
+        .arg(format!("{}", engine.value().replace("{}", &&selection.description.unwrap())))
+        .spawn()
+    }
+
     {
         println!("Failed to perform anyrun-terminal: {}", why);
     }
