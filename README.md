@@ -1,4 +1,4 @@
-# Anyrun-Terminal
+# Anyrun-Scripts
 
 Run cli programs or arbitrary shell scripts in preferred terminal emulators with [anyrun](https://github.com/Kirottu/anyrun). 
 
@@ -17,7 +17,7 @@ With this example, typing ":sh ranger" will open alacritty and run ranger. Typin
 You can also depend wholly on secondary prefixes by setting the main prefix to be "".
 
 ```ron
-// <Anyrun config dir>/terminal.ron
+// <Anyrun config dir>/scripts.ron
 
 Config(
 
