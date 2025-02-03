@@ -4,9 +4,9 @@ Run cli programs or arbitrary shell scripts in preferred terminal emulators with
 
 ## Usage
 
-Set the preferred terminal emulator (default to foot) in the config file. In anyrun, type in the prefix you set to call for the configured terminal emulator or shell scripts.
+Set the preferred terminal emulator (default to foot) in the config file. Type the configured prefix to call for shell scripts.
 
-For example, with default setting, type in ":sh ranger" will open ranger in foot terminal, with the input line being translated to "foot -e ranger" and launched. You can also configure customized prefix to call for arbitrary scripts. See the example config file.
+With default setting, type in ":sh ranger" will open ranger in foot terminal, with the input line being translated to "foot -e ranger" and launched. You can also configure customized prefix to call for arbitrary scripts. See the example config file.
 
 Note that this plugin allows for two kinds of prefixes. The main prefix call for anyrun-terminal plugin itself, the secondary prefix call for the specific command or script you configured. See the example config file.
 
